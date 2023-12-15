@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -230,13 +231,21 @@ func makeQueueContainer(rev *v1.Revision, cfg *config.Config) (*corev1.Container
 	serviceName := rev.Labels[serving.ServiceLabelKey]
 
 	userPort := getUserPort(rev)
+	//Get REDIRECT_IP env from yaml
 	env_list := rev.Spec.GetContainer().Env
-	redirect_ip := fmt.Sprintf("%v", env_list)
+	var redirect_ip string
 	for _, red_envVar := range env_list {
 		if red_envVar.Name == "REDIRECT_IP" {
 			redirect_ip = red_envVar.Value
 			break
 		}
+	}
+
+	//Check RedirectIP
+	trimmed_redirect_ip := strings.TrimSpace(redirect_ip)
+	if trimmed_redirect_ip == "" {
+		//if empty set to 127.0.0.1
+		redirect_ip = "127.0.0.1"
 	}
 
 	var loggingLevel string

@@ -45,13 +45,9 @@ func mainHandler(
 	logger *zap.SugaredLogger,
 ) (http.Handler, *pkghandler.Drainer) {
 
-	var target string
+	//Will send to redirectIP
+	target := net.JoinHostPort(env.RedirectIp, env.UserPort)
 
-	if env.RedirectIp == "" {
-		target = net.JoinHostPort("127.0.0.1", env.UserPort)
-	} else {
-		target = net.JoinHostPort(env.RedirectIp, env.UserPort)
-	}
 	httpProxy := pkghttp.NewHeaderPruningReverseProxy(target, pkghttp.NoHostOverride, activator.RevisionHeaders, false /* use HTTP */)
 	httpProxy.Transport = transport
 	httpProxy.ErrorHandler = pkghandler.Error(logger)
