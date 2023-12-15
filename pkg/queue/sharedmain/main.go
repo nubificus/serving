@@ -87,6 +87,7 @@ type config struct {
 	ServingReadinessProbe               string `split_words:"true"`                      // optional
 	EnableProfiling                     bool   `split_words:"true"`                      // optional
 	EnableHTTP2AutoDetection            bool   `envconfig:"ENABLE_HTTP2_AUTO_DETECTION"` // optional
+	RedirectIp                          string `split_words:"true" required:"true"`
 
 	// Logging configuration
 	ServingLoggingConfig         string `split_words:"true" required:"true"`
@@ -233,6 +234,11 @@ func Main(opts ...Option) error {
 
 	mainHandler, drainer := mainHandler(d.Ctx, env, d.Transport, probe, stats, logger)
 	adminHandler := adminHandler(d.Ctx, logger, drainer)
+
+	logger.Info("Edw 8a mporouse na einai o unikernel related http server")
+	str_env := fmt.Sprintf("%v", env)
+	logger.Info("Print to env REDIRECT_IP: " + env.RedirectIp)
+	logger.Info("ENV is " + str_env)
 
 	// Enable TLS server when activator server certs are mounted.
 	// At this moment activator with TLS does not disable HTTP.

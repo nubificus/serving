@@ -230,6 +230,14 @@ func makeQueueContainer(rev *v1.Revision, cfg *config.Config) (*corev1.Container
 	serviceName := rev.Labels[serving.ServiceLabelKey]
 
 	userPort := getUserPort(rev)
+	env_list := rev.Spec.GetContainer().Env
+	redirect_ip := fmt.Sprintf("%v", env_list)
+	for _, red_envVar := range env_list {
+		if red_envVar.Name == "REDIRECT_IP" {
+			redirect_ip = red_envVar.Value
+			break
+		}
+	}
 
 	var loggingLevel string
 	if ll, ok := cfg.Logging.LoggingLevel["queueproxy"]; ok {
@@ -362,66 +370,73 @@ func makeQueueContainer(rev *v1.Revision, cfg *config.Config) (*corev1.Container
 		}, {
 			Name:  "SERVING_LOGGING_LEVEL",
 			Value: loggingLevel,
-		}, {
-			Name:  "SERVING_REQUEST_LOG_TEMPLATE",
-			Value: cfg.Observability.RequestLogTemplate,
-		}, {
-			Name:  "SERVING_ENABLE_REQUEST_LOG",
-			Value: strconv.FormatBool(cfg.Observability.EnableRequestLog),
-		}, {
-			Name:  "SERVING_REQUEST_METRICS_BACKEND",
-			Value: cfg.Observability.RequestMetricsBackend,
-		}, {
-			Name:  "SERVING_REQUEST_METRICS_REPORTING_PERIOD_SECONDS",
-			Value: strconv.Itoa(cfg.Observability.RequestMetricsReportingPeriodSeconds),
-		}, {
-			Name:  "TRACING_CONFIG_BACKEND",
-			Value: string(cfg.Tracing.Backend),
-		}, {
-			Name:  "TRACING_CONFIG_ZIPKIN_ENDPOINT",
-			Value: cfg.Tracing.ZipkinEndpoint,
-		}, {
-			Name:  "TRACING_CONFIG_DEBUG",
-			Value: strconv.FormatBool(cfg.Tracing.Debug),
-		}, {
-			Name:  "TRACING_CONFIG_SAMPLE_RATE",
-			Value: fmt.Sprint(cfg.Tracing.SampleRate),
-		}, {
-			Name:  "USER_PORT",
-			Value: strconv.Itoa(int(userPort)),
-		}, {
-			Name:  system.NamespaceEnvKey,
-			Value: system.Namespace(),
-		}, {
-			Name:  metrics.DomainEnv,
-			Value: metrics.Domain(),
-		}, {
-			Name:  "SERVING_READINESS_PROBE",
-			Value: userProbeJSON,
-		}, {
-			Name:  "ENABLE_PROFILING",
-			Value: strconv.FormatBool(cfg.Observability.EnableProfiling),
-		}, {
-			Name:  "SERVING_ENABLE_PROBE_REQUEST_LOG",
-			Value: strconv.FormatBool(cfg.Observability.EnableProbeRequestLog),
-		}, {
-			Name:  "METRICS_COLLECTOR_ADDRESS",
-			Value: cfg.Observability.MetricsCollectorAddress,
-		}, {
-			Name: "HOST_IP",
-			ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					APIVersion: "v1",
-					FieldPath:  "status.hostIP",
-				},
+		},
+
+			{
+				Name:  "REDIRECT_IP",
+				Value: redirect_ip,
 			},
-		}, {
-			Name:  "ENABLE_HTTP2_AUTO_DETECTION",
-			Value: strconv.FormatBool(cfg.Features.AutoDetectHTTP2 == apicfg.Enabled),
-		}, {
-			Name:  "ROOT_CA",
-			Value: cfg.Deployment.QueueSidecarRootCA,
-		}},
+
+			{
+				Name:  "SERVING_REQUEST_LOG_TEMPLATE",
+				Value: cfg.Observability.RequestLogTemplate,
+			}, {
+				Name:  "SERVING_ENABLE_REQUEST_LOG",
+				Value: strconv.FormatBool(cfg.Observability.EnableRequestLog),
+			}, {
+				Name:  "SERVING_REQUEST_METRICS_BACKEND",
+				Value: cfg.Observability.RequestMetricsBackend,
+			}, {
+				Name:  "SERVING_REQUEST_METRICS_REPORTING_PERIOD_SECONDS",
+				Value: strconv.Itoa(cfg.Observability.RequestMetricsReportingPeriodSeconds),
+			}, {
+				Name:  "TRACING_CONFIG_BACKEND",
+				Value: string(cfg.Tracing.Backend),
+			}, {
+				Name:  "TRACING_CONFIG_ZIPKIN_ENDPOINT",
+				Value: cfg.Tracing.ZipkinEndpoint,
+			}, {
+				Name:  "TRACING_CONFIG_DEBUG",
+				Value: strconv.FormatBool(cfg.Tracing.Debug),
+			}, {
+				Name:  "TRACING_CONFIG_SAMPLE_RATE",
+				Value: fmt.Sprint(cfg.Tracing.SampleRate),
+			}, {
+				Name:  "USER_PORT",
+				Value: strconv.Itoa(int(userPort)),
+			}, {
+				Name:  system.NamespaceEnvKey,
+				Value: system.Namespace(),
+			}, {
+				Name:  metrics.DomainEnv,
+				Value: metrics.Domain(),
+			}, {
+				Name:  "SERVING_READINESS_PROBE",
+				Value: userProbeJSON,
+			}, {
+				Name:  "ENABLE_PROFILING",
+				Value: strconv.FormatBool(cfg.Observability.EnableProfiling),
+			}, {
+				Name:  "SERVING_ENABLE_PROBE_REQUEST_LOG",
+				Value: strconv.FormatBool(cfg.Observability.EnableProbeRequestLog),
+			}, {
+				Name:  "METRICS_COLLECTOR_ADDRESS",
+				Value: cfg.Observability.MetricsCollectorAddress,
+			}, {
+				Name: "HOST_IP",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{
+						APIVersion: "v1",
+						FieldPath:  "status.hostIP",
+					},
+				},
+			}, {
+				Name:  "ENABLE_HTTP2_AUTO_DETECTION",
+				Value: strconv.FormatBool(cfg.Features.AutoDetectHTTP2 == apicfg.Enabled),
+			}, {
+				Name:  "ROOT_CA",
+				Value: cfg.Deployment.QueueSidecarRootCA,
+			}},
 	}
 
 	return c, nil

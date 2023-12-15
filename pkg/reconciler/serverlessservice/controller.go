@@ -89,6 +89,7 @@ func NewController(
 		// Since changes in the Activator Service endpoints affect all the SKS objects,
 		// do a global resync.
 		logger.Info("Doing a global resync due to activator endpoint changes")
+		logger.Info("I ve been customized ")
 		impl.GlobalResync(sksInformer.Informer())
 	}
 	endpointsInformer.Informer().AddEventHandler(cache.FilteringResourceEventHandler{
