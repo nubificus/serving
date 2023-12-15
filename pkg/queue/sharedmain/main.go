@@ -90,6 +90,7 @@ type config struct {
 	EnableHTTPFullDuplex       bool `split_words:"true"`                      // optional
 	EnableHTTP2AutoDetection   bool `envconfig:"ENABLE_HTTP2_AUTO_DETECTION"` // optional
 	EnableMultiContainerProbes bool `split_words:"true"`
+	RedirectIp                          string `split_words:"true"` // optional
 
 	// Logging configuration
 	ServingLoggingConfig         string `split_words:"true" required:"true"`
