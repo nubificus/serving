@@ -43,8 +43,10 @@ import (
 	"knative.dev/serving/pkg/reconciler/revision/config"
 )
 
+var localAddress = "127.0.0.1"
+
 const (
-	localAddress              = "127.0.0.1"
+	//localAddress              = "127.0.0.1"
 	requestQueueHTTPPortName  = "queue-port"
 	requestQueueHTTPSPortName = "https-port" // must be no more than 15 characters.
 	profilingPortName         = "profiling-port"
@@ -247,6 +249,9 @@ func makeQueueContainer(rev *v1.Revision, cfg *config.Config) (*corev1.Container
 		//if empty set to 127.0.0.1
 		redirect_ip = "127.0.0.1"
 	}
+
+	//Update localAddress
+	localAddress = redirect_ip
 
 	var loggingLevel string
 	if ll, ok := cfg.Logging.LoggingLevel["queueproxy"]; ok {
